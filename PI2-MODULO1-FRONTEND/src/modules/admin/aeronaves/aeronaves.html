@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../assets/css/aeronaves.css">
+    <title>Aeronaves</title>
+
+    <script>
+
+      function showStatusMessage(msg, error, identificacao){
+
+          if(identificacao === 1){
+            var pStatus = document.getElementById("statusInclude");
+          }else if(identificacao === 2){
+            var pStatus = document.getElementById("statusAlter");
+          }else if(identificacao === 3){
+            var pStatus = document.getElementById("statusDelete");
+          }
+
+          if(error === true){
+            pStatus.className = "statusError";
+          }else{
+            pStatus.className = "statusSuccess";
+          }
+          pStatus.textContent = msg;
+      }
+
+      function preencheuID(identificacao){
+        let resultado = false;
+        let strIdAeronave;
+
+        if(identificacao === 1){
+          strIdAeronave = document.getElementById("idAeronaveInclude").value;
+        }else if(identificacao === 2){
+          strIdAeronave = document.getElementById("idAeronaveAlter").value;
+        }else if(identificacao === 3){
+          strIdAeronave = document.getElementById("idAeronaveDelete").value;
+        }
+        let idAeronave = parseInt(strIdAeronave);
+
+        if(idAeronave > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuModelo(identificacao){
+
+        let resultado = false;
+        let modeloAeronave;
+
+        if(identificacao === 1){
+          modeloAeronave = document.getElementById("modeloAeronaveInclude").value;
+        }else if(identificacao === 2){
+          modeloAeronave = document.getElementById("modeloAeronaveAlter").value;
+        }
+
+        if(modeloAeronave.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuFabricante(identificacao){
+
+        let resultado = false;
+        let fabricanteAeronave;
+
+        if(identificacao === 1){
+          fabricanteAeronave = document.getElementById("fabricanteAeronaveInclude").value;
+        }else if(identificacao === 2){
+          fabricanteAeronave = document.getElementById("fabricanteAeronaveAlter").value;
+        }
+
+        if(fabricanteAeronave.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function anoValido(identificacao){
+
+        let resultado = false;
+        let strAno;
+
+        if(identificacao === 1){
+          strAno = document.getElementById("anoFabricacaoInclude").value;
+        }else if(identificacao === 2){
+          strAno = document.getElementById("anoFabricacaoAlter").value;
+        }
+        const ano = parseInt(strAno);
+        if(ano >= 1990 && ano <= 2026){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function totalAssentosValidos(identificacao){
+
+        let resultado = false;
+        let strAssento;
+
+        if(identificacao === 1){
+          strAssento = document.getElementById("qtdAssentoInclude").value;
+        }else if(identificacao === 2){
+          strAssento = document.getElementById("qtdAssentoAlter").value;
+        }
+        let assentos = parseInt(strAssento);
+
+        if(assentos > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function fetchInserir(body){
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Aeronaves', requestOptions)
+        .then(response => response.json())
+      }
+
+      function inserirAeronave(){
+
+        const identificacao = 1;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuModelo(identificacao)){
+          showStatusMessage("Preencha o Modelo...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuFabricante(identificacao)){
+          showStatusMessage("Preencha o Fabricante...", true, identificacao);
+          return;
+        }
+
+        if(!anoValido(identificacao)){
+          showStatusMessage("Ano deve de 1990 até 2026...", true, identificacao);
+          return;
+        }
+
+        if(!totalAssentosValidos(identificacao)){
+          showStatusMessage("Preencha o total de assentos...", true, identificacao);
+          return;
+        }
+
+        const idAeronave = document.getElementById("idAeronaveInclude").value;
+        const modeloAeronave = document.getElementById("modeloAeronaveInclude").value;
+        const fabricanteAeronave = document.getElementById("fabricanteAeronaveInclude").value;
+        const anoFabricacao = document.getElementById("anoFabricacaoInclude").value;
+        const qtdAssento = document.getElementById("qtdAssentoInclude").value;
+
+        fetchInserir({
+          idAeronave: idAeronave,
+          modeloAeronave: modeloAeronave,
+          fabricanteAeronave: fabricanteAeronave,
+          anoFabricacao: anoFabricacao,
+          qtdAssento: qtdAssento })
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Aeronave cadastrada...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao cadastrar aeronave...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(error => {
+            showStatusMessage("Erro técnico ao cadastrar.... Contate o suporte.", true, identificacao);
+          });
+      }
+      
+      function fetchAlterar(body){
+        const requestOptions = {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Aeronaves', requestOptions)
+        .then(response => response.json())
+      }
+
+      function alterarAeronave(){
+
+        const identificacao = 2;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuModelo(identificacao)){
+          showStatusMessage("Preencha o Modelo...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuFabricante(identificacao)){
+          showStatusMessage("Preencha o Fabricante...", true, identificacao);
+          return;
+        }
+
+        if(!anoValido(identificacao)){
+          showStatusMessage("Ano deve de 1990 até 2026...", true, identificacao);
+          return;
+        }
+
+        if(!totalAssentosValidos(identificacao)){
+          showStatusMessage("Preencha o total de assentos...", true, identificacao);
+          return;
+        }
+
+        const idAeronave = document.getElementById("idAeronaveAlter").value;
+        const modeloAeronave = document.getElementById("modeloAeronaveAlter").value;
+        const fabricanteAeronave = document.getElementById("fabricanteAeronaveAlter").value;
+        const anoFabricacao = document.getElementById("anoFabricacaoAlter").value;
+        const qtdAssento = document.getElementById("qtdAssentoAlter").value;
+
+        fetchAlterar({
+          idAeronave: idAeronave,
+          modeloAeronave: modeloAeronave,
+          fabricanteAeronave: fabricanteAeronave,
+          anoFabricacao: anoFabricacao,
+          qtdAssento: qtdAssento })
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Aeronave alterada...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao alterar aeronave...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(()=>{
+            showStatusMessage("Erro técnico ao alterar.... Contate o suporte.", true, identificacao)
+          });
+      }
+
+      async function selectAeronave(){
+        try {
+        const response = await fetch('http://localhost:3000/Aeronaves');
+        const data = await response.json();
+
+        const aeronavesTableBody = document.querySelector('.divTable tbody');
+
+        if (data.status === 'SUCCESS') {
+          // Limpa a tabela antes de adicionar novos dados
+          aeronavesTableBody.innerHTML = '';
+
+          // Adiciona as aeronaves à tabela
+          data.payload.forEach(aeronaves => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${aeronaves.idAeronave}</td>
+              <td>${aeronaves.modeloAeronave}</td>
+              <td>${aeronaves.fabricanteAeronave}</td>
+              <td>${aeronaves.anoFabricacao}</td>
+              <td>${aeronaves.qtdAssento}</td>
+            `;
+            aeronavesTableBody.appendChild(row);
+          });
+        } else {
+          console.error('Erro ao carregar aeronaves:', data.message);
+        }
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+      }
+    }
+
+    function fetchDeletar(body){
+        const requestOptions = {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Aeronaves', requestOptions)
+        .then(response => response.json())
+      }
+
+    function deletarAeronave(){
+
+      const identificacao = 3;
+
+      if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+      }
+
+      const idAeronave = document.getElementById("idAeronaveDelete").value;
+
+      fetchDeletar({
+        codigo: idAeronave})
+        .then(resultado =>{
+
+          if(resultado.status === "SUCCESS"){
+            showStatusMessage("Aeronave deletada...", false, identificacao);
+          }else{
+            showStatusMessage("Erro ao deletar aeronave...: " + message, true, identificacao);
+            console.log(resultado.message)
+          }
+        })
+        .catch(()=>{
+          showStatusMessage("Erro técnico ao deletar.... Contate o suporte.", true, identificacao)
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        selectAeronave();
+      });
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <ul>
+                    <li class="li-padrao"><h2><a href="../voos/voos.html">Voos</a></h2></li>
+                    <li class="li-padrao"><h2><a href="../aeroportos/aeroportos.html">Aeroportos</a></h2></li>
+                    <li class="li-padrao"><h2><a href="../cidades/cidades.html">Cidades</a></h2></li>
+                    <li class="li-padrao"><h2><a href="../trechos/trechos.html">Trechos</a></h2></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main>
+            <header>
+                <h1><a href="#"></a>Aeronaves</h1>
+            </header>
+
+            <div class="divTable">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Modelo</th>
+                      <th>Fabricante</th>
+                      <th>Ano de Fabricação</th>
+                      <th>Quantidade de Assentos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    
+                  </tbody>
+                </table>
+              </div>
+              <div class="container2">
+                <div class="include">
+                  <form>
+                      <label for="idAeronaveInclude">ID</label>
+                      <input id="idAeronaveInclude" type="number"/>
+            
+                      <label for="modeloAeronaveInclude">Modelo</label>
+                      <input id="modeloAeronaveInclude" type="text"/>
+
+                      <label for="fabricanteAeronaveInclude">Fabricante</label>
+                      <input id="fabricanteAeronaveInclude" type="text"/>
+            
+                      <label for="anoFabricacaoInclude">Ano de Fabricação</label>
+                      <input id="anoFabricacaoInclude" type="number"/>
+
+                      <label for="qtdAssentoInclude">Quantidade de Assentos</label>
+                      <input id="qtdAssentoInclude" type="number"/>
+                      <button type="button" onclick="inserirAeronave()" id="btnAdicionar">Adicionar</button>
+                      <p id="statusInclude" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="alter">
+                  <form>
+                      <label for="idAeronaveAlter">ID</label>
+                      <input id="idAeronaveAlter" type="number"/>
+            
+                      <label for="modeloAeronaveAlter">Modelo</label>
+                      <input id="modeloAeronaveAlter" type="text"/>
+
+                      <label for="fabricanteAeronaveAlter">Fabricante</label>
+                      <input id="fabricanteAeronaveAlter" type="text"/>
+            
+                      <label for="anoFabricacaoAlter">Ano de Fabricação</label>
+                      <input id="anoFabricacaoAlter" type="number"/>
+
+                      <label for="qtdAssentoAlter">Quantidade de Assentos</label>
+                      <input id="qtdAssentoAlter" type="number"/>
+                      <button type="button" onclick="alterarAeronave()" id="btnAlterar">Alterar</button>
+                      <p id="statusAlter" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="delete">
+                  <form>
+                      <label for="idAeronaveDelete">ID</label>
+                      <input id="idAeronaveDelete" type="number"/>
+                      <button type="button" onclick="deletarAeronave()" id="btnExcluir">Excluir</button>
+                      <p id="statusDelete" class="statusError"></p>
+                  </form>
+                </div>
+              </div>
+            <div class="main-content"></div>
+        </main>
+    </div>
+</body>
+</html>

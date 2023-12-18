@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../assets/css/voos.css">
+    <title>Trechos</title>
+
+    <script>
+
+      function showStatusMessage(msg, error, identificacao){
+
+          if(identificacao === 1){
+            var pStatus = document.getElementById("statusInclude");
+          }else if(identificacao === 2){
+            var pStatus = document.getElementById("statusAlter");
+          }else if(identificacao === 3){
+            var pStatus = document.getElementById("statusDelete");
+          }
+
+          if(error === true){
+            pStatus.className = "statusError";
+          }else{
+            pStatus.className = "statusSuccess";
+          }
+          pStatus.textContent = msg;
+      }
+
+      function preencheuID(identificacao){
+        let resultado = false;
+        let strIdTrecho;
+
+        if(identificacao === 1){
+            strIdTrecho = document.getElementById("idTrechoInclude").value;
+        }else if(identificacao === 2){
+            strIdTrecho = document.getElementById("idTrechoAlter").value;
+        }else if(identificacao === 3){
+            strIdTrecho = document.getElementById("idTrechoDelete").value;
+        }
+        console.log("Valor de strIdTrecho:", strIdTrecho);
+
+        let idTrecho = parseInt(strIdTrecho);
+
+        if(idTrecho > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuIDCidadeOrigem(identificacao){
+        let resultado = false;
+        let strIdCidadeOrigem;
+
+        if(identificacao === 1){
+            strIdCidadeOrigem = document.getElementById("idCidadeOrigemInclude").value;
+        }else if(identificacao === 2){
+            strIdCidadeOrigem = document.getElementById("idCidadeOrigemAlter").value;
+        }
+        let idCidadeOrigem = parseInt(strIdCidadeOrigem);
+
+        if(idCidadeOrigem > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuIDCidadeDestino(identificacao){
+        let resultado = false;
+        let strIdCidadDestino;
+
+        if(identificacao === 1){
+            strIdCidadDestino = document.getElementById("idCidadeDestinoInclude").value;
+        }else if(identificacao === 2){
+            strIdCidadDestino = document.getElementById("idCidadeDestinoAlter").value;
+        }
+        let idCidadeDestino = parseInt(strIdCidadDestino);
+
+        if(idCidadeDestino > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      
+      function fetchInserir(body){
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Trechos', requestOptions)
+        .then(response => response.json())
+      }
+
+      function inserirTrecho(){
+
+        const identificacao = 1;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuIDCidadeOrigem(identificacao)){
+          showStatusMessage("Preencha o ID da Cidade Origem...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuIDCidadeDestino(identificacao)){
+          showStatusMessage("Preencha o ID da Cidade Destino...", true, identificacao);
+          return;
+        }
+
+        const idTrecho = document.getElementById("idTrechoInclude").value;
+        const idCidadeOrigem = document.getElementById("idCidadeOrigemInclude").value;
+        const idCidadeDestino = document.getElementById("idCidadeDestinoInclude").value;
+
+        fetchInserir({
+            idTrecho: idTrecho,
+            idCidadeOrigem: idCidadeOrigem,
+            idCidadeDestino: idCidadeDestino})
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Trecho cadastrado...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao cadastrar trecho...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(error => {
+            showStatusMessage("Erro técnico ao cadastrar.... Contate o suporte.", true, identificacao);
+          });
+      }
+      
+      function fetchAlterar(body){
+        const requestOptions = {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Trechos', requestOptions)
+        .then(response => response.json())
+      }
+
+      function alterarTrecho(){
+
+        const identificacao = 2;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuIDCidadeOrigem(identificacao)){
+          showStatusMessage("Preencha o ID da Cidade Origem...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuIDCidadeDestino(identificacao)){
+          showStatusMessage("Preencha o ID da Cidade Destino...", true, identificacao);
+          return;
+        }
+
+        const idTrecho = document.getElementById("idTrechoAlter").value;
+        const idCidadeOrigem = document.getElementById("idCidadeOrigemAlter").value;
+        const idCidadeDestino = document.getElementById("idCidadeDestinoAlter").value;
+
+        fetchAlterar({
+          idTrecho: idTrecho,
+          idCidadeOrigem: idCidadeOrigem,
+          idCidadeDestino: idCidadeDestino})
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Trecho alterado...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao alterar trecho...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(()=>{
+            showStatusMessage("Erro técnico ao alterar.... Contate o suporte.", true, identificacao)
+          });
+      }
+
+      async function selectTrecho(){
+        try {
+        const response = await fetch('http://localhost:3000/Trechos');
+        const data = await response.json();
+
+        const trechosTableBody = document.querySelector('.divTable tbody');
+
+        if (data.status === 'SUCCESS') {
+          // Limpa a tabela antes de adicionar novos dados
+          trechosTableBody.innerHTML = '';
+
+          // Adiciona os voos à tabela
+          data.payload.forEach(trechos => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${trechos.idTrecho}</td>
+              <td>${trechos.idCidadeOrigem}</td>
+              <td>${trechos.idCidadeDestino}</td>
+            `;
+            trechosTableBody.appendChild(row);
+          });
+        } else {
+          console.error('Erro ao carregar trechos:', data.message);
+        }
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+      }
+    }
+
+    function fetchDeletar(body){
+        const requestOptions = {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Trechos', requestOptions)
+        .then(response => response.json())
+      }
+
+    function deletarTrecho(){
+
+      const identificacao = 3;
+
+      if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+      }
+
+      const idTrecho = document.getElementById("idTrechoDelete").value;
+
+      fetchDeletar({
+        codigo: idTrecho})
+        .then(resultado =>{
+
+          if(resultado.status === "SUCCESS"){
+            showStatusMessage("Trecho deletado...", false, identificacao);
+          }else{
+            showStatusMessage("Erro ao deletar Trecho...: " + message, true, identificacao);
+            console.log(resultado.message)
+          }
+        })
+        .catch(()=>{
+          showStatusMessage("Erro técnico ao deletar.... Contate o suporte.", true, identificacao)
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        selectTrecho();
+      });
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <ul>
+                  <li class="li-padrao"><h2><a href="../voos/voos.html">Voos</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../aeroportos/aeroportos.html">Aeroportos</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../cidades/cidades.html">Cidades</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../aeronaves/aeronaves.html">Aeronaves</a></h2></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main>
+            <header>
+                <h1><a href="#"></a>Trechos</h1>
+            </header>
+
+            <div class="divTable">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Cidade Origem</th>
+                      <th>Cidade Destino</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+              <div class="container2">
+                <div class="include">
+                  <form>
+                      <label for="idTrechoInclude">ID</label>
+                      <input id="idTrechoInclude" type="number"/>
+            
+                      <label for="idCidadeOrigemInclude">ID Cidade Origem</label>
+                      <input id="idCidadeOrigemInclude" type="number"/>
+
+                      <label for="idCidadeDestinoInclude">ID Cidade Destino</label>
+                      <input id="idCidadeDestinoInclude" type="number"/>
+
+                      <button type="button" onclick="inserirTrecho()" id="btnAdicionar">Adicionar</button>
+                      <p id="statusInclude" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="alter">
+                  <form>
+                    <label for="idTrechoAlter">ID</label>
+                    <input id="idTrechoAlter" type="number"/>
+          
+                    <label for="idCidadeOrigemAlter">ID Cidade Origem</label>
+                    <input id="idCidadeOrigemAlter" type="number"/>
+
+                    <label for="idCidadeDestinoAlter">ID Cidade Destino</label>
+                    <input id="idCidadeDestinoAlter" type="number"/>
+
+                      <button type="button" onclick="alterarTrecho()" id="btnAlterar">Alterar</button>
+                      <p id="statusAlter" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="delete">
+                  <form>
+                      <label for="idTrechoDelete">ID</label>
+                      <input id="idTrechoDelete" type="number"/>
+                      <button type="button" onclick="deletarTrecho()" id="btnExcluir">Excluir</button>
+                      <p id="statusDelete" class="statusError"></p>
+                  </form>
+                </div>
+              </div>
+            <div class="main-content"></div>
+        </main>
+    </div>
+</body>
+</html>

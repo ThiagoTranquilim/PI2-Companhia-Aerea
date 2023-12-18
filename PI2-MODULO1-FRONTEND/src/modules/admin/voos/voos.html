@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../assets/css/voos.css">
+    <title>Voos</title>
+
+    <script>
+
+      function showStatusMessage(msg, error, identificacao){
+
+          if(identificacao === 1){
+            var pStatus = document.getElementById("statusInclude");
+          }else if(identificacao === 2){
+            var pStatus = document.getElementById("statusAlter");
+          }else if(identificacao === 3){
+            var pStatus = document.getElementById("statusDelete");
+          }
+
+          if(error === true){
+            pStatus.className = "statusError";
+          }else{
+            pStatus.className = "statusSuccess";
+          }
+          pStatus.textContent = msg;
+      }
+
+      function preencheuID(identificacao){
+        let resultado = false;
+        let strIdVoo;
+
+        if(identificacao === 1){
+            strIdVoo = document.getElementById("idVooInclude").value;
+        }else if(identificacao === 2){
+            strIdVoo = document.getElementById("idVooAlter").value;
+        }else if(identificacao === 3){
+            strIdVoo = document.getElementById("idVooDelete").value;
+        }
+        let idVoo = parseInt(strIdVoo);
+
+        if(idVoo > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuDataSaida(identificacao){
+
+        let resultado = false;
+        let dataSaida;
+
+        if(identificacao === 1){
+            dataSaida = document.getElementById("dataSaidaInclude").value;
+        }else if(identificacao === 2){
+            dataSaida = document.getElementById("dataSaidaAlter").value;
+        }
+
+        if(dataSaida.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuDataChegada(identificacao){
+
+        let resultado = false;
+        let dataChegada;
+
+        if(identificacao === 1){
+            dataChegada = document.getElementById("dataChegadaInclude").value;
+        }else if(identificacao === 2){
+            dataChegada = document.getElementById("dataChegadaAlter").value;
+        }
+
+        if(dataChegada.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuValor(identificacao){
+        let resultado = false;
+        let strValor;
+
+        if(identificacao === 1){
+            strValor = document.getElementById("valorInclude").value;
+        }else if(identificacao === 2){
+            strValor = document.getElementById("valorAlter").value;
+        }
+
+        let valor = parseInt(strValor);
+
+        if(valor > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuAeronave(identificacao){
+        let resultado = false;
+        let strAeronave;
+
+        if(identificacao === 1){
+            strAeronave = document.getElementById("idAeronaveInclude").value;
+        }else if(identificacao === 2){
+            strAeronave = document.getElementById("idAeronaveAlter").value;
+        }
+
+        let idAeronave = parseInt(strAeronave);
+
+        if(idAeronave > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuTrecho(identificacao){
+        let resultado = false;
+        let strTrecho;
+
+        if(identificacao === 1){
+            strTrecho = document.getElementById("trechoInclude").value;
+        }else if(identificacao === 2){
+            strTrecho = document.getElementById("trechoAlter").value;
+        }
+
+        let trecho = parseInt(strTrecho);
+
+        if(trecho > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      
+      function fetchInserir(body){
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Voos', requestOptions)
+        .then(response => response.json())
+      }
+
+      function inserirVoo(){
+
+        const identificacao = 1;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuDataSaida(identificacao)){
+          showStatusMessage("Preencha a Data Saida...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuDataChegada(identificacao)){
+          showStatusMessage("Preencha a Data Chegada...", true, identificacao);
+          return;
+        }
+        
+        if(!preencheuValor(identificacao)){
+          showStatusMessage("Preencha o Valor...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuTrecho(identificacao)){
+          showStatusMessage("Preencha o Trecho...", true, identificacao);
+          return;
+        }
+
+        const idVoo = document.getElementById("idVooInclude").value;
+        const dataSaida = document.getElementById("dataSaidaInclude").value;
+        const dataChegada = document.getElementById("dataChegadaInclude").value;
+        const valor = document.getElementById("valorInclude").value;
+        const idAeronave = document.getElementById("idAeronaveInclude").value;
+        const trecho = document.getElementById("trechoInclude").value;
+
+        fetchInserir({
+            idVoo: idVoo,
+            dataSaida: dataSaida,
+            dataChegada: dataChegada,
+            valor: valor,
+            idAeronave: idAeronave,
+            trecho: trecho})
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Voo cadastrado...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao cadastrar voos...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(error => {
+            showStatusMessage("Erro técnico ao cadastrar.... Contate o suporte.", true, identificacao);
+          });
+      }
+      
+      function fetchAlterar(body){
+        const requestOptions = {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Voos', requestOptions)
+        .then(response => response.json())
+      }
+
+      function alterarVoo(){
+
+        const identificacao = 2;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuDataSaida(identificacao)){
+          showStatusMessage("Preencha a Data Saida...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuDataChegada(identificacao)){
+          showStatusMessage("Preencha a Data Chegada...", true, identificacao);
+          return;
+        }
+        
+        if(!preencheuValor(identificacao)){
+          showStatusMessage("Preencha o Valor...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuTrecho(identificacao)){
+          showStatusMessage("Preencha o Trecho...", true, identificacao);
+          return;
+        }
+
+        const idVoo = document.getElementById("idVooAlter").value;
+        const dataSaida = document.getElementById("dataSaidaAlter").value;
+        const dataChegada = document.getElementById("dataChegadaAlter").value;
+        const valor = document.getElementById("valorAlter").value;
+        const idAeronave = document.getElementById("idAeronaveAlter").value;
+        const trecho = document.getElementById("trechoAlter").value;
+
+        fetchAlterar({
+          idVoo: idVoo,
+          dataSaida: dataSaida,
+          dataChegada: dataChegada,
+          valor: valor,
+          idAeronave: idAeronave,
+          trecho: trecho})
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Voo alterado...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao alterar voo...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(()=>{
+            showStatusMessage("Erro técnico ao alterar.... Contate o suporte.", true, identificacao)
+          });
+      }
+
+      async function selectVoo(){
+        try {
+        const response = await fetch('http://localhost:3000/Voos');
+        const data = await response.json();
+
+        const voosTableBody = document.querySelector('.divTable tbody');
+
+        if (data.status === 'SUCCESS') {
+          // Limpa a tabela antes de adicionar novos dados
+          voosTableBody.innerHTML = '';
+
+          // Adiciona os voos à tabela
+          data.payload.forEach(dados => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${dados.idVoo}</td>
+              <td>${dados.dataSaida}</td>
+              <td>${dados.dataChegada}</td>
+              <td>${dados.valor}</td>
+              <td>${dados.modelo}</td>
+              <td>${dados.origem}</td>
+              <td>${dados.destino}</td>
+            `;
+            voosTableBody.appendChild(row);
+          });
+        } else {
+          console.error('Erro ao carregar voos:', data.message);
+        }
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+      }
+    }
+
+    function fetchDeletar(body){
+        const requestOptions = {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Voos', requestOptions)
+        .then(response => response.json())
+      }
+
+    function deletarVoo(){
+
+      const identificacao = 3;
+
+      if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+      }
+
+      const idAeronave = document.getElementById("idVooDelete").value;
+
+      fetchDeletar({
+        codigo: idAeronave})
+        .then(resultado =>{
+
+          if(resultado.status === "SUCCESS"){
+            showStatusMessage("Voo deletado...", false, identificacao);
+          }else{
+            showStatusMessage("Erro ao deletar voo...: " + message, true, identificacao);
+            console.log(resultado.message)
+          }
+        })
+        .catch(()=>{
+          showStatusMessage("Erro técnico ao deletar.... Contate o suporte.", true, identificacao)
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        selectVoo();
+      });
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <ul>
+                  <li class="li-padrao"><h2><a href="../aeroportos/aeroportos.html">Aeroportos</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../cidades/cidades.html">Cidades</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../trechos/trechos.html">Trechos</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../aeronaves/aeronaves.html">Aeronaves</a></h2></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main>
+            <header>
+                <h1><a href="#"></a>Voos</h1>
+            </header>
+
+            <div class="divTable">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Data Saida</th>
+                      <th>Data Chegada</th>
+                      <th>Valor</th>
+                      <th>Modelo</th>
+                      <th>Origem</th>
+                      <th>Destino</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    
+                  </tbody>
+                </table>
+              </div>
+              <div class="container2">
+                <div class="include">
+                  <form>
+                      <label for="idVooInclude">ID</label>
+                      <input id="idVooInclude" type="number"/>
+            
+                      <label for="dataSaidaInclude">Data Saida</label>
+                      <input id="dataSaidaInclude" type="text"/>
+
+                      <label for="dataChegadaInclude">Data Chegada</label>
+                      <input id="dataChegadaInclude" type="text"/>
+
+                      <label for="valorInclude">Valor</label>
+                      <input id="valorInclude" type="number"/>
+
+                      <label for="idAeronaveInclude">ID Aeronave</label>
+                      <input id="idAeronaveInclude" type="number"/>
+
+                      <label for="trechoInclude">Trecho</label>
+                      <input id="trechoInclude" type="number"/>
+
+                      <button type="button" onclick="inserirVoo()" id="btnAdicionar">Adicionar</button>
+                      <p id="statusInclude" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="alter">
+                  <form>
+                      <label for="idVooAlter">ID</label>
+                      <input id="idVooAlter" type="number"/>
+            
+                      <label for="dataSaidaAlter">Data Saida</label>
+                      <input id="dataSaidaAlter" type="text"/>
+
+                      <label for="dataChegadaAlter">Data Chegada</label>
+                      <input id="dataChegadaAlter" type="text"/>
+
+                      <label for="valorAlter">Valor</label>
+                      <input id="valorAlter" type="number"/>
+
+                      <label for="idAeronaveAlter">ID Aeronave</label>
+                      <input id="idAeronaveAlter" type="number"/>
+
+                      <label for="trechoAlter">Trecho</label>
+                      <input id="trechoAlter" type="number"/>
+
+                      <button type="button" onclick="alterarVoo()" id="btnAlterar">Alterar</button>
+                      <p id="statusAlter" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="delete">
+                  <form>
+                      <label for="idVooDelete">ID</label>
+                      <input id="idVooDelete" type="number"/>
+                      <button type="button" onclick="deletarVoo()" id="btnExcluir">Excluir</button>
+                      <p id="statusDelete" class="statusError"></p>
+                  </form>
+                </div>
+              </div>
+            <div class="main-content"></div>
+        </main>
+    </div>
+</body>
+</html>

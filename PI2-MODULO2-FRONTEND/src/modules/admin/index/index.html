@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compras Voo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+<script>
+
+      function mAlert(msg, error){
+        var Modal = new bootstrap.Modal(document.getElementById('modalAlert'));
+        var pStatus = document.getElementById('pStatus');
+        pStatus.textContent = msg;
+        Modal.show();
+      }
+      
+      function preencheuDe(){
+        let resultado = false;
+        let cidadeSaida;
+        cidadeSaida = document.getElementById("cidadeSaida").value;
+
+        if(cidadeSaida.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+      
+      function preencheuPara(){
+        let resultado = false;
+        let cidadeChegada;
+        cidadeChegada = document.getElementById("cidadeChegada").value;
+
+        if(cidadeChegada.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuIda(){
+        let resultado = false;
+        let ida;
+        ida = document.getElementById("IdaForm").value;
+
+        if(ida.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuVolta(){
+        let resultado = false;
+        let idaVolta;
+        idaVolta = document.getElementById("IdaVoltaForm").value;
+
+        if(idaVolta.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuQtd(){
+        let resultado = false;
+        let qtd;
+        qtd = document.getElementById("qtd").value;
+
+        if(qtd > 0 && qtd < 6){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function buscaVoo(){
+        let verificacaoData;
+
+        if(!preencheuDe()){
+          mAlert("Preencha Cidade Saída...", true);
+          return;
+        }
+
+        if(!preencheuPara()){
+          mAlert("Preencha Cidade Destino...", true);
+          return;
+        }
+
+        if(!preencheuIda() && !preencheuVolta()){
+          mAlert("Nenhuma Data preenchida...", true);
+          return;
+        }
+
+        if(preencheuIda() && preencheuVolta()){
+          mAlert("Ambas datas preenchidas, escolha uma das opções...", true);
+          return;
+        }
+        if(preencheuIda() && !preencheuVolta()){
+          verificacaoData = 1;
+          console.log("Ida preenchida");
+        }
+        if(!preencheuIda() && preencheuVolta()){
+          verificacaoData = 2;
+          console.log("Ida e Volta preenchida");
+        }
+
+        if(!preencheuQtd()){
+          mAlert(" Quantidade de pessoas deve estar entre 1 e 5...", true);
+          return;
+        }
+
+        const cidadeSaida = document.getElementById("cidadeSaida").value;
+        const cidadeChegada = document.getElementById("cidadeChegada").value;
+        const qtd = document.getElementById("qtd").value;
+        if(verificacaoData === 1){
+          const dataSaida = document.getElementById("IdaForm").value;
+
+          const dataObjeto = new Date(dataSaida);
+          const dia = dataObjeto.getDate() + 1;
+          const mes = dataObjeto.getMonth() + 1;
+          const ano = dataObjeto.getFullYear();
+          const dataSaidaFormatada = `${dia}/${mes}/${ano}`;
+          selectBuscaVoo(cidadeSaida, cidadeChegada, dataSaidaFormatada, qtd);
+
+        }else if(verificacaoData === 2){
+          const dataSaida = document.getElementById("IdaVoltaForm").value;
+          const dataChegada = document.getElementById("IdaVoltaForm2").value;
+
+          const dataObjeto = new Date(dataSaida);
+          const dia = dataObjeto.getDate() + 1;
+          const mes = dataObjeto.getMonth() + 1;
+          const ano = dataObjeto.getFullYear();
+          const dataSaidaFormatada = `${dia}/${mes}/${ano}`;
+
+          const dataObjeto2 = new Date(dataChegada);
+          const dia2 = dataObjeto2.getDate() + 1;
+          const mes2 = dataObjeto2.getMonth() + 1;
+          const ano2 = dataObjeto2.getFullYear();
+          const dataChegadaFormatada = `${dia2}/${mes2}/${ano2}`;
+          selectBuscaVoo2(cidadeSaida, cidadeChegada, dataSaidaFormatada, dataChegadaFormatada, qtd);
+
+        }
+      }
+
+      function MudarVisibilidade(){
+        const thead = document.getElementById("thead");
+
+        thead.className = "visible";
+      }
+
+      async function selectBuscaVoo(cidadeSaida, cidadeChegada, dataSaida, qtd){
+        try {
+
+        console.log("Entrou SelectBuscaVoo");
+        const url = `http://localhost:3000/BuscaVoo?origem=${cidadeSaida}&destino=${cidadeChegada}&dataSaida=${dataSaida}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log(data);
+
+        MudarVisibilidade();
+        const voosTableBody = document.querySelector('#table tbody');
+
+        if (data.status === 'SUCCESS') {
+          // Limpa a tabela antes de adicionar novos dados
+          voosTableBody.innerHTML = '';
+
+          // Adiciona os voos à tabela
+          data.payload.forEach(dados => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${dados.idVoo}</td>
+              <td>${dados.dataSaida}</td>
+              <td>${dados.dataChegada}</td>
+              <td>${dados.valor}</td>
+              <td>${dados.modelo}</td>
+              <td>${dados.origem}</td>
+              <td>${dados.destino}</td>
+              <td>
+                <button type="button" onclick="window.location.href = '../../admin/travel/travel.html?idVoo=${dados.idVoo}&qtdAssentos=${qtd}'" class="btn btn-primary">Detalhes</button>
+              </td>
+            `;
+            voosTableBody.appendChild(row);
+          });
+        } else {
+          console.error('Erro ao carregar voos:', data.message);
+        }
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+      }
+    }
+
+    async function selectBuscaVoo2(cidadeSaida, cidadeChegada, dataSaida, dataChegada, ){
+        try {
+
+        console.log("Entrou SelectBuscaVoo2");
+        const url = `http://localhost:3000/BuscaVoo2?origem=${cidadeSaida}&destino=${cidadeChegada}&dataSaida=${dataSaida}&dataChegada=${dataChegada}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log(data);
+
+        MudarVisibilidade();
+        const voosTableBody = document.querySelector('#table tbody');
+
+        if (data.status === 'SUCCESS') {
+          // Limpa a tabela antes de adicionar novos dados
+          voosTableBody.innerHTML = '';
+
+          // Adiciona os voos à tabela
+          data.payload.forEach(dados => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${dados.idVoo}</td>
+              <td>${dados.dataSaida}</td>
+              <td>${dados.dataChegada}</td>
+              <td>${dados.valor}</td>
+              <td>${dados.modelo}</td>
+              <td>${dados.origem}</td>
+              <td>${dados.destino}</td>
+              <td>
+                <button type="button" onclick="window.location.href = '../../admin/travel/travel.html?idVoo=${dados.idVoo}&qtdAssentos=${qtd}'" class="btn btn-primary">Detalhes</button>
+              </td>
+              
+            `;
+            voosTableBody.appendChild(row);
+          });
+        } else {
+          console.error('Erro ao carregar voos:', data.message);
+        }
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+      }
+    }
+
+</script>
+
+<style>
+
+
+</style>
+
+</head>
+<body class="bg-primary-subtle">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    
+    <header class="d-flex justify-content-center align-items-center flex-column pt-3">
+        <ul class="nav nav-tabs bg-primary pt-3 pe-3 ps-3 rounded-top-2">
+            <li class="nav-item d-flex justify-content-center align-items-center">
+              <a class="nav-link active text-primary me-2" aria-current="page" href="#">
+                <h6><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-house" viewBox="0 0 16 16">
+                    <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
+                  </svg>
+                Home</h6></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white me-2" href="#">
+                <h6><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-backpack2" viewBox="0 0 16 16">
+                    <path d="M4.04 7.43a4 4 0 0 1 7.92 0 .5.5 0 1 1-.99.14 3 3 0 0 0-5.94 0 .5.5 0 1 1-.99-.14Z"/>
+                    <path fill-rule="evenodd" d="M4 9.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-4Zm1 .5v3h6v-3h-1v.5a.5.5 0 0 1-1 0V10H5Z"/>
+                    <path d="M6 2.341V2a2 2 0 1 1 4 0v.341c2.33.824 4 3.047 4 5.659v1.191l1.17.585a1.5 1.5 0 0 1 .83 1.342V13.5a1.5 1.5 0 0 1-1.5 1.5h-1c-.456.607-1.182 1-2 1h-7a2.497 2.497 0 0 1-2-1h-1A1.5 1.5 0 0 1 0 13.5v-2.382a1.5 1.5 0 0 1 .83-1.342L2 9.191V8a6.002 6.002 0 0 1 4-5.659ZM7 2v.083a6.04 6.04 0 0 1 2 0V2a1 1 0 0 0-2 0ZM3 13.5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5V8A5 5 0 0 0 3 8v5.5Zm-1-3.19-.724.362a.5.5 0 0 0-.276.447V13.5a.5.5 0 0 0 .5.5H2v-3.691Zm12 0V14h.5a.5.5 0 0 0 .5-.5v-2.382a.5.5 0 0 0-.276-.447L14 10.309Z"/>
+                  </svg>
+                Travel</h6></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white me-2" href="#"><h6>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-credit-card" viewBox="0 0 16 16">
+                  <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
+                  <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
+                </svg>
+                Payment</h6></a>
+            </li>
+          </ul>
+
+        <div class="container-fluid bg-white rounded-1 d-flex justify-content-center p-5">
+            <div class="btn-group btn-group-lg" role="group" aria-label="Large button group">
+                <button type="button" class="btn btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#DeModal">De</button>
+                <button type="button" class="btn btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#ParaModal">Para</button>
+                <button type="button" class="btn btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#IdaModal">Ida</button>
+                <button type="button" class="btn btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#IdaVoltaModal">Ida/Volta</button>
+                <button type="button" class="btn btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#QtdModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
+                      </svg>
+                </button>
+                <button type="button" class="btn btn-outline-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16" onclick="buscaVoo()">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                  </svg>
+              </button>
+              </div>
+        </div>
+
+        <div class="container-fluid bg-white">
+          <table id="table" class="table table-hover">
+            <thead id="thead" class="invisible">
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Data Saída</th>
+                <th scope="col">Data Chegada</th>
+                <th scope="col">Valor</th>
+                <th scope="col">Modelo</th>
+                <th scope="col">Cidade Origem</th>
+                <th scope="col">Cidade Destino</th>
+                <th scope="col">Escolha</th>
+              </tr>
+            </thead>
+            <tbody>
+
+
+            </tbody>
+          </table>
+        </div>
+      </header>
+
+      <!-- Modals Cidade Saida -->
+      <div class="modal fade" id="DeModal" tabindex="-1" aria-labelledby="DeModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5">Cidade Saída</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="mb-3">
+                  <label for="DeForm" class="form-label">De:</label>
+                  <input type="text" class="form-control" id="cidadeSaida">
+                  <div class="form-text">Escolha a cidade de partida</div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals Cidade Chegada -->
+      <div class="modal fade" id="ParaModal" tabindex="-1" aria-labelledby="ParaModel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5">Cidade Chegada</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="mb-3">
+                  <label for="DeForm" class="form-label">Para:</label>
+                  <input type="text" class="form-control" id="cidadeChegada">
+                  <div class="form-text">Escolha a cidade de Chegada</div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals Calendário -->
+      <div class="modal fade" id="IdaModal" tabindex="-1" aria-labelledby="IdaModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5">Ida exclusivamente:</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="date" class="form-control" id="IdaForm">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="IdaVoltaModal" tabindex="-1" aria-labelledby="IdaVoltaModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5">Ida e Volta: </h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="form-text">Data Origem: </div>
+              <input type="date" class="form-control" id="IdaVoltaForm">
+              <div class="form-text">Data Destino: </div>
+              <input type="date" class="form-control" id="IdaVoltaForm2">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals Quantidade de Pessoas -->
+      <div class="modal fade" id="QtdModal" tabindex="-1" aria-labelledby="QtdModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5">Quantidade de Pessoas:</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="number" class="form-control" id="qtd">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals Aviso-->
+      <div class="modal text-center" id="modalAlert" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="alert alert-danger d-flex" role="alert">
+            <p><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </svg></p>
+            <p id="pStatus"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals Quem Somos-->
+      <div class="modal" id="QuemSomosModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Quem Somos</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Somos mais do que uma companhia aérea; somos a ponte que conecta sonhos, aventuras e destinos. Temos o prazer de oferecer uma experiência única de viagem, combinando conforto, confiabilidade e inovação para tornar cada voo inesquecível.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals Como Funcionamos-->
+      <div class="modal" id="ComoFuncionamosModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Como Funcionamos</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Acreditamos que viajar vai além do simples deslocamento. É sobre explorar novos horizontes, reunir-se com entes queridos e criar memórias duradouras. Nossas modernas aeronaves e equipes altamente treinadas estão comprometidas em proporcionar uma viagem segura, eficiente e memorável a cada passageiro.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals Segurança em Primeiro Lugar-->
+      <div class="modal" id="SegurançaPrimeiroLugarModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Segurança em Primeiro Lugar</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>A segurança é a nossa prioridade número um. Em cada voo, implementamos os mais rigorosos padrões de segurança da aviação. Nossa frota é mantida com os mais altos padrões, e nossa equipe é composta por profissionais experientes e dedicados. Voar conosco significa confiar em uma jornada segura e tranquila.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+
+      <section class="bg-white pb-5">
+        <div class="container text-center">
+          <div class="row mb-5">
+            <div class="col container-sm">
+              <div id="carouselExampleCaptions" class="carousel slide">
+                <div class="carousel-indicators">
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner">
+                  <div class="carousel-item active">
+                    <img src="../../../assets/images/index/Airplane.jpg" class="d-block w-100" alt="...">
+                    <div class="carousel-caption d-none d-md-block">
+                      <h5>First slide Airplane</h5>
+                      <p>Some photos about your Airplanes</p>
+                    </div>
+                  </div>
+                  <div class="carousel-item">
+                    <img src="../../../assets/images/index/Airplane2.jpg" class="d-block w-100" alt="...">
+                    <div class="carousel-caption d-none d-md-block">
+                      <h5>Second slide Airplane</h5>
+                      <p>Some photos about your Airplanes</p>
+                    </div>
+                  </div>
+                  <div class="carousel-item">
+                    <img src="../../../assets/images/index/Airplane3.jpg" class="d-block w-100" alt="...">
+                    <div class="carousel-caption d-none d-md-block">
+                      <h5>Third slide Airplane</h5>
+                      <p>Some photos about your Airplanes</p>
+                    </div>
+                  </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Next</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="col card" style="width: 18rem;">
+              <div class="card-body">
+                <h5 class="card-title">Bem Vindo!</h5>
+                <p class="card-text">Sua Jornada Começa Aqui!</p>
+              
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">
+                    <button class="btn" type="button" data-bs-toggle="modal" data-bs-target="#QuemSomosModal">Quem Somos</button></li>
+                  <li class="list-group-item">
+                    <button class="btn" type="button" data-bs-toggle="modal" data-bs-target="#ComoFuncionamosModal">Como Funcionamos</button></li>
+                  </li>
+                  <li class="list-group-item">
+                    <button class="btn" type="button" data-bs-toggle="modal" data-bs-target="#SegurançaPrimeiroLugarModal">Segurança em Primeiro Lugar</button></li>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="card-group">
+              <div class="card">
+                <img src="../../../assets/images/index/Location2.jpg" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title">Santorini</h5>
+                  <p class="card-text">Descubra Santorini de uma perspectiva única! Navegue pelos céus sobre campos verdejantes e vilarejos pitorescos. Reserve seu voo agora para uma experiência única no paraíso grego.</p>
+                </div>
+              </div>
+              <div class="card">
+                <img src="../../../assets/images/index/Location3.jpg" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title">Barcelona</h5>
+                  <p class="card-text">Explore Barcelona do alto, onde praças e árvores se destacam sob o sol. Reserve seu voo para uma experiência única na cidade catalã.</p>
+                </div>
+              </div>
+              <div class="card">
+                <img src="../../../assets/images/index/Location4.jpg" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <h5 class="card-title">Alpes</h5>
+                  <p class="card-text">Explore a beleza gelada dos Alpes em um sobrevoo único. Contemple um lago congelado e montanhas cobertas de neve. Reserve sua experiência agora.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passagens Voo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+<script>
+  const  assentosSelecionados = [];
+  var idAeronaveA;
+        function mAlert(msg, error){
+          var Modal = new bootstrap.Modal(document.getElementById('modalAlert'));
+          var pStatus = document.getElementById('pStatus');
+          pStatus.textContent = msg;
+          Modal.show();
+        }
+
+      function OrganizandoParametros(){
+
+          const params = new URLSearchParams(window.location.search);
+          const idVoo = params.get('idVoo');
+
+          return idVoo;
+
+      }
+
+      async function selectBuscaVoo(idVoo){
+          try {
+
+          console.log("Entrou SelectBuscaVoo");
+          const url = `http://localhost:3000/BuscaVooId?idVoo=${idVoo}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          console.log(data);
+
+          const voosTableBody = document.querySelector('#table tbody');
+
+          if (data.status === 'SUCCESS') {
+          // Limpa a tabela antes de adicionar novos dados
+          voosTableBody.innerHTML = '';
+
+          // Adiciona os voos à tabela
+          data.payload.forEach(dados => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+              <td>${dados.idVoo}</td>
+              <td>${dados.dataSaida}</td>
+              <td>${dados.dataChegada}</td>
+              <td>${dados.valor}</td>
+              <td id="modelo">${dados.modelo}</td>
+              <td>${dados.origem}</td>
+              <td>${dados.destino}</td>
+              `;
+              voosTableBody.appendChild(row);
+
+              buscarIdAeronave(dados.modelo);
+          });
+          } else {
+          console.error('Erro ao carregar voos:', data.message);
+          }
+      } catch (error) {
+          console.error('Erro inesperado:', error);
+      }
+      }
+
+      async function buscarIdAeronave(modelo){
+
+        const url = `http://localhost:3000/BuscaAeronave?modelo=${modelo}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const idAeronavePayload = data.payload[0];
+        const idAeronave = idAeronavePayload.idAeronave;
+        idAeronaveA = idAeronave;
+
+        inserirAssentos(idAeronave);
+      }
+
+      async function inserirAssentos(idAeronave) {
+
+        const url = `http://localhost:3000/BuscaAssentosGeral?idAeronave=${idAeronave}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log(data.payload);
+        const pos = ['0', 'A', 'B', 'C', 'D'];
+        const voosTableBody = document.querySelector('#tableAssentos tbody');
+        var k = 0;
+        for (var i = 1; i < pos.length; i++) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <th scope="row">${pos[i]}</th>
+          `;
+
+          for (let j = 1; j <= 10; j++) {
+            const id = `${pos[i]}${j}`;
+
+            if(data.payload[k].Status === "L"){
+              row.innerHTML += `
+                <td>
+                    <button id="${id}" type="button" class="btn btn-light" onclick="adicionarAssento('${id}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-layout-sidebar-reverse" viewBox="0 0 16 16">
+                            <path d="M16 3a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3zm-5-1v12H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h9zm1 0h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-2V2z"/>
+                        </svg>
+                    </button>
+                </td>
+            `;
+            }else{
+              row.innerHTML += `
+              <td>
+                  <button id="${id}" type="button" class="btn btn-danger" onclick="adicionarAssento('${id}') disabled">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-layout-sidebar-reverse" viewBox="0 0 16 16">
+                          <path d="M16 3a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3zm-5-1v12H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h9zm1 0h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-2V2z"/>
+                      </svg>
+                  </button>
+              </td>
+          `;
+          }
+          k++;
+          }
+
+        voosTableBody.appendChild(row);
+      }
+      }
+
+      /*
+      async function verificaStatusAssento(idAeronave, idAssento){
+
+        const url = `http://localhost:3000/BuscaAssentosGeral?idAeronave=${idAeronave}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const statusPayload = data.payload[0];
+        const status = statusPayload.charStatusAssento;
+        console.log(status);
+
+        if(status === 'L'){
+          return true;
+        }else{
+          return false;
+        }
+      }
+      */
+
+      async function verificarQtdAssentos(){
+
+        const table = document.querySelector('#tableAssentos');
+        const totalLinhas = table.querySelectorAll('tr');
+
+        const params = new URLSearchParams(window.location.search);
+        const qtdAssentos = params.get('qtdAssentos');
+
+        var verificacao = 0;
+
+        for(var i = 0; i < totalLinhas.length; i++){
+          const td = totalLinhas[i].querySelectorAll('td');
+
+          for(var j = 0; j < td.length; j++){
+            const button = td[j].querySelector('button');
+
+            if(button.className === 'btn btn-success'){
+              verificacao++;
+            }
+          }
+        }
+
+        console.log("Quantidade de Assentos: ", qtdAssentos);
+        if(verificacao < qtdAssentos){
+          mAlert("Quantidade insuficiente de assentos selecionada...", true);
+          return;
+        }else if(verificacao > qtdAssentos){
+          mAlert("Mais assentos selecionados do que a quantidade solicitada...", true);
+          return;
+        }else{
+          console.log(assentosSelecionados);
+          window.location.href = `../../admin/payment/payment.html?assentosSelecionados=${assentosSelecionados}&idAeronave=${idAeronaveA}`;
+        }
+      }
+
+      function adicionarAssento(id){
+          const idAssento = document.getElementById(id);
+
+          if(idAssento.className === "btn btn-light"){
+            idAssento.className = "btn btn-success";
+            assentosSelecionados.push(id);
+          }else{
+            idAssento.className = "btn btn btn-light";
+            assentosSelecionados.pop(id);
+          }
+          console.log(idAssento);
+          console.log(assentosSelecionados);
+        }
+
+      document.addEventListener('DOMContentLoaded', ()=>{
+
+        const idVoo = OrganizandoParametros();
+        selectBuscaVoo(idVoo);
+        
+      })
+
+</script>
+
+</head>
+<body class="bg-primary-subtle">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    
+    <header class="d-flex justify-content-center align-items-center flex-column pt-3">
+        <ul class="nav nav-tabs bg-primary pt-3 pe-3 ps-3 rounded-top-2">
+            <li class="nav-item d-flex justify-content-center align-items-center">
+              <a class="nav-link text-white me-2" aria-current="page" href="#">
+                <h6><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-house" viewBox="0 0 16 16">
+                    <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5ZM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5 5 5Z"/>
+                  </svg>
+                Home</h6></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active text-primary me-2" href="#">
+                <h6><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-backpack2" viewBox="0 0 16 16">
+                    <path d="M4.04 7.43a4 4 0 0 1 7.92 0 .5.5 0 1 1-.99.14 3 3 0 0 0-5.94 0 .5.5 0 1 1-.99-.14Z"/>
+                    <path fill-rule="evenodd" d="M4 9.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-4Zm1 .5v3h6v-3h-1v.5a.5.5 0 0 1-1 0V10H5Z"/>
+                    <path d="M6 2.341V2a2 2 0 1 1 4 0v.341c2.33.824 4 3.047 4 5.659v1.191l1.17.585a1.5 1.5 0 0 1 .83 1.342V13.5a1.5 1.5 0 0 1-1.5 1.5h-1c-.456.607-1.182 1-2 1h-7a2.497 2.497 0 0 1-2-1h-1A1.5 1.5 0 0 1 0 13.5v-2.382a1.5 1.5 0 0 1 .83-1.342L2 9.191V8a6.002 6.002 0 0 1 4-5.659ZM7 2v.083a6.04 6.04 0 0 1 2 0V2a1 1 0 0 0-2 0ZM3 13.5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5V8A5 5 0 0 0 3 8v5.5Zm-1-3.19-.724.362a.5.5 0 0 0-.276.447V13.5a.5.5 0 0 0 .5.5H2v-3.691Zm12 0V14h.5a.5.5 0 0 0 .5-.5v-2.382a.5.5 0 0 0-.276-.447L14 10.309Z"/>
+                  </svg>
+                Travel</h6></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white me-2" href="#"><h6>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-credit-card" viewBox="0 0 16 16">
+                  <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
+                  <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
+                </svg>
+                Payment</h6></a>
+            </li>
+          </ul>
+
+        <div class="container-fluid bg-white pt-5">
+          <table id="table" class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Data Saída</th>
+                <th scope="col">Data Chegada</th>
+                <th scope="col">Valor</th>
+                <th scope="col">Modelo</th>
+                <th scope="col">Cidade Origem</th>
+                <th scope="col">Cidade Destino</th>
+              </tr>
+            </thead>
+            <tbody>
+
+
+            </tbody>
+          </table>
+        </div>
+      </header>
+
+      <div class="modal text-center" id="modalAlert" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="alert alert-danger d-flex" role="alert">
+            <p><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </svg></p>
+            <p id="pStatus"></p>
+          </div>
+        </div>
+      </div>
+
+      <main class="bg-white pt-5 pb-5">
+        <div class="container-sm">
+          <table class="table" id="tableAssentos">
+              <thead>
+                <tr>
+                  <th scope="col">Colunas</th>
+                  <th scope="col">1</th>
+                  <th scope="col">2</th>
+                  <th scope="col">3</th>
+                  <th scope="col">4</th>
+                  <th scope="col">5</th>
+                  <th scope="col">6</th>
+                  <th scope="col">7</th>
+                  <th scope="col">8</th>
+                  <th scope="col">9</th>
+                  <th scope="col">10</th>
+                </tr>
+              </thead>
+              <tbody class="table-group-divider">
+
+              </tbody>
+          </table>
+        </div>
+
+        <div class="text-center">
+          <button type="button" class="btn btn-primary" onclick="verificarQtdAssentos()">Seguir para Pagamento</button>
+        </div>
+      </main>
+
+
+</body>
+</html>

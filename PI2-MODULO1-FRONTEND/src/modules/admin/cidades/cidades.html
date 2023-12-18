@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../assets/css/cidades.css">
+    <title>Cidades</title>
+
+    <script>
+
+      function showStatusMessage(msg, error, identificacao){
+
+          if(identificacao === 1){
+            var pStatus = document.getElementById("statusInclude");
+          }else if(identificacao === 2){
+            var pStatus = document.getElementById("statusAlter");
+          }else if(identificacao === 3){
+            var pStatus = document.getElementById("statusDelete");
+          }
+
+          if(error === true){
+            pStatus.className = "statusError";
+          }else{
+            pStatus.className = "statusSuccess";
+          }
+          pStatus.textContent = msg;
+      }
+
+      function preencheuID(identificacao){
+        let resultado = false;
+        let strIdVoo;
+
+        if(identificacao === 1){
+            strIdVoo = document.getElementById("idCidadeInclude").value;
+        }else if(identificacao === 2){
+            strIdVoo = document.getElementById("idCidadeAlter").value;
+        }else if(identificacao === 3){
+            strIdVoo = document.getElementById("idCidadeDelete").value;
+        }
+        let idVoo = parseInt(strIdVoo);
+
+        if(idVoo > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuNomeCidade(identificacao){
+
+        let resultado = false;
+        let nomeCidade;
+
+        if(identificacao === 1){
+            nomeCidade = document.getElementById("nomeCidadeInclude").value;
+        }else if(identificacao === 2){
+            nomeCidade = document.getElementById("nomeCidadeAlter").value;
+        }
+
+        if(nomeCidade.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuIDAeroporto(identificacao){
+        let resultado = false;
+        let strIdAeroporto;
+
+        if(identificacao === 1){
+            strIdAeroporto = document.getElementById("idAeroportoInclude").value;
+        }else if(identificacao === 2){
+            strIdAeroporto = document.getElementById("idAeroportoAlter").value;
+        }
+
+        let idAeroporto = parseInt(strIdAeroporto);
+
+        if(idAeroporto > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      
+      function fetchInserir(body){
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Cidades', requestOptions)
+        .then(response => response.json())
+      }
+
+      function inserirCidade(){
+
+        const identificacao = 1;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuNomeCidade(identificacao)){
+          showStatusMessage("Preencha o Nome Cidade...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuIDAeroporto(identificacao)){
+          showStatusMessage("Preencha o ID Aeroporto", true, identificacao);
+          return;
+        }
+
+        const idCidade = document.getElementById("idCidadeInclude").value;
+        const nomeCidade = document.getElementById("nomeCidadeInclude").value;
+        const idAeroporto = document.getElementById("idAeroportoInclude").value;
+
+        fetchInserir({
+            idCidade: idCidade,
+            nomeCidade: nomeCidade,
+            idAeroporto: idAeroporto})
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Cidade cadastrada...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao cadastrar cidades...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(error => {
+            showStatusMessage("Erro técnico ao cadastrar.... Contate o suporte.", true, identificacao);
+          });
+      }
+      
+      function fetchAlterar(body){
+        const requestOptions = {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Cidades', requestOptions)
+        .then(response => response.json())
+      }
+
+      function alterarCidade(){
+
+        const identificacao = 2;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuNomeCidade(identificacao)){
+          showStatusMessage("Preencha o Nome Cidade...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuIDAeroporto(identificacao)){
+          showStatusMessage("Preencha o ID Aeroporto", true, identificacao);
+          return;
+        }
+
+        const idCidade = document.getElementById("idCidadeAlter").value;
+        const nomeCidade = document.getElementById("nomeCidadeAlter").value;
+        const idAeroporto = document.getElementById("idAeroportoAlter").value;
+
+        fetchAlterar({
+          idCidade: idCidade,
+          nomeCidade: nomeCidade,
+          idAeroporto: idAeroporto})
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Cidade alterada...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao alterar cidade...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(()=>{
+            showStatusMessage("Erro técnico ao alterar.... Contate o suporte.", true, identificacao)
+          });
+      }
+
+      async function selectCidade(){
+        try {
+        const response = await fetch('http://localhost:3000/Cidades');
+        const data = await response.json();
+
+        const cidadesTableBody = document.querySelector('.divTable tbody');
+
+        if (data.status === 'SUCCESS') {
+          // Limpa a tabela antes de adicionar novos dados
+          cidadesTableBody.innerHTML = '';
+
+          // Adiciona os voos à tabela
+          data.payload.forEach(cidades => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${cidades.idCidade}</td>
+              <td>${cidades.nomeCidade}</td>
+              <td>${cidades.idAeroporto}</td>
+            `;
+            cidadesTableBody.appendChild(row);
+          });
+        } else {
+          console.error('Erro ao carregar cidades:', data.message);
+        }
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+      }
+    }
+
+    function fetchDeletar(body){
+        const requestOptions = {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Cidades', requestOptions)
+        .then(response => response.json())
+      }
+
+    function deletarCidade(){
+
+      const identificacao = 3;
+
+      if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+      }
+
+      const idAeronave = document.getElementById("idCidadeDelete").value;
+
+      fetchDeletar({
+        codigo: idAeronave})
+        .then(resultado =>{
+
+          if(resultado.status === "SUCCESS"){
+            showStatusMessage("Cidade deletada...", false, identificacao);
+          }else{
+            showStatusMessage("Erro ao deletar cidade...: " + message, true, identificacao);
+            console.log(resultado.message)
+          }
+        })
+        .catch(()=>{
+          showStatusMessage("Erro técnico ao deletar.... Contate o suporte.", true, identificacao)
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        selectCidade();
+      });
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <ul>
+                  <li class="li-padrao"><h2><a href="../voos/voos.html">Voos</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../aeroportos/aeroportos.html">Aeroportos</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../aeronaves/aeronaves.html">Aeronaves</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../trechos/trechos.html">Trechos</a></h2></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main>
+            <header>
+                <h1><a href="#"></a>Cidades</h1>
+            </header>
+
+            <div class="divTable">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Cidade</th>
+                      <th>ID Aeroporto</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    
+                  </tbody>
+                </table>
+              </div>
+              <div class="container2">
+                <div class="include">
+                  <form>
+                      <label for="idCidadeInclude">ID</label>
+                      <input id="idCidadeInclude" type="number"/>
+            
+                      <label for="nomeCidadeInclude">Nome Cidade</label>
+                      <input id="nomeCidadeInclude" type="text"/>
+
+                      <label for="idAeroportoInclude">ID Aeroporto</label>
+                      <input id="idAeroportoInclude" type="number"/>
+
+                      <button type="button" onclick="inserirCidade()" id="btnAdicionar">Adicionar</button>
+                      <p id="statusInclude" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="alter">
+                  <form>
+                      <label for="idCidadeAlter">ID</label>
+                      <input id="idCidadeAlter" type="number"/>
+            
+                      <label for="nomeCidadeAlter">Nome Cidade</label>
+                      <input id="nomeCidadeAlter" type="text"/>
+
+                      <label for="idAeroportoAlter">ID Aeroporto</label>
+                      <input id="idAeroportoAlter" type="number"/>
+
+                      <button type="button" onclick="alterarCidade()" id="btnAlterar">Alterar</button>
+                      <p id="statusAlter" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="delete">
+                  <form>
+                      <label for="idCidadeDelete">ID</label>
+                      <input id="idCidadeDelete" type="number"/>
+                      <button type="button" onclick="deletarCidade()" id="btnExcluir">Excluir</button>
+                      <p id="statusDelete" class="statusError"></p>
+                  </form>
+                </div>
+              </div>
+            <div class="main-content"></div>
+        </main>
+    </div>
+</body>
+</html>

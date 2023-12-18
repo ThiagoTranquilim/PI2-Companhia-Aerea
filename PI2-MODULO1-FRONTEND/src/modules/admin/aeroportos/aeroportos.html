@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../assets/css/aeroportos.css">
+    <title>Aeroportos</title>
+
+    <script>
+
+      function showStatusMessage(msg, error, identificacao){
+
+          if(identificacao === 1){
+            var pStatus = document.getElementById("statusInclude");
+          }else if(identificacao === 2){
+            var pStatus = document.getElementById("statusAlter");
+          }else if(identificacao === 3){
+            var pStatus = document.getElementById("statusDelete");
+          }
+
+          if(error === true){
+            pStatus.className = "statusError";
+          }else{
+            pStatus.className = "statusSuccess";
+          }
+          pStatus.textContent = msg;
+      }
+
+      function preencheuID(identificacao){
+        let resultado = false;
+        let strIdAeroporto;
+
+        if(identificacao === 1){
+            strIdAeroporto = document.getElementById("idAeroportoInclude").value;
+        }else if(identificacao === 2){
+            strIdAeroporto = document.getElementById("idAeroportoAlter").value;
+        }else if(identificacao === 3){
+            strIdAeroporto = document.getElementById("idAeroportoDelete").value;
+        }
+        let idAeroporto = parseInt(strIdAeroporto);
+
+        if(idAeroporto > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuNome(identificacao){
+
+        let resultado = false;
+        let nomeAeroporto;
+
+        if(identificacao === 1){
+            nomeAeroporto = document.getElementById("nomeAeroportoInclude").value;
+        }else if(identificacao === 2){
+            nomeAeroporto = document.getElementById("nomeAeroportoAlter").value;
+        }
+
+        if(nomeAeroporto.length > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      function preencheuIDAeronave(identificacao){
+        let resultado = false;
+        let strIdAeronave;
+
+        if(identificacao === 1){
+            strIdAeronave = document.getElementById("idAeronaveInclude").value;
+        }else if(identificacao === 2){
+            strIdAeronave = document.getElementById("idAeronaveAlter").value;
+        }
+
+        let idAeronave = parseInt(strIdAeronave);
+
+        if(idAeronave > 0){
+          resultado = true;
+        }
+        return resultado;
+      }
+
+      
+      function fetchInserir(body){
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Aeroportos', requestOptions)
+        .then(response => response.json())
+      }
+
+      function inserirAeroporto(){
+
+        const identificacao = 1;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuNome(identificacao)){
+          showStatusMessage("Preencha o Nome...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuIDAeronave(identificacao)){
+          showStatusMessage("Preencha o ID Aeronave...", true, identificacao);
+          return;
+        }
+
+        const idAeroporto = document.getElementById("idAeroportoInclude").value;
+        const nomeAeroporto = document.getElementById("nomeAeroportoInclude").value;
+        const idAeronave = document.getElementById("idAeronaveInclude").value;
+
+        fetchInserir({
+          idAeroporto: idAeroporto,
+          nomeAeroporto: nomeAeroporto,
+          idAeronave: idAeronave})
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Aeroporto cadastrado...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao cadastrar aeroporto...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(error => {
+            showStatusMessage("Erro técnico ao cadastrar.... Contate o suporte.", true, identificacao);
+          });
+      }
+      
+      function fetchAlterar(body){
+        const requestOptions = {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Aeroportos', requestOptions)
+        .then(response => response.json())
+      }
+
+      function alterarAeroporto(){
+
+        const identificacao = 2;
+
+        if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuNome(identificacao)){
+          showStatusMessage("Preencha o Nome...", true, identificacao);
+          return;
+        }
+
+        if(!preencheuIDAeronave(identificacao)){
+          showStatusMessage("Preencha o ID da Aeronave...", true, identificacao);
+          return;
+        }
+
+        const idAeroporto = document.getElementById("idAeroportoAlter").value;
+        const nomeAeroporto = document.getElementById("nomeAeroportoAlter").value;
+        const idAeronave = document.getElementById("idAeronaveAlter").value;
+
+        fetchAlterar({
+          idAeroporto: idAeroporto,
+          nomeAeroporto: nomeAeroporto,
+          idAeronave: idAeronave})
+          .then(resultado =>{
+
+            if(resultado.status === "SUCCESS"){
+              showStatusMessage("Aeroporto alterado...", false, identificacao);
+            }else{
+              showStatusMessage("Erro ao alterar aeronave...: " + resultado.message, true, identificacao);
+              console.log(resultado.message)
+            }
+          })
+          .catch(()=>{
+            showStatusMessage("Erro técnico ao alterar.... Contate o suporte.", true, identificacao)
+          });
+      }
+
+      async function selectAeroporto(){
+        try {
+        const response = await fetch('http://localhost:3000/Aeroportos');
+        const data = await response.json();
+
+        const aeroportosTableBody = document.querySelector('.divTable tbody');
+
+        if (data.status === 'SUCCESS') {
+          // Limpa a tabela antes de adicionar novos dados
+          aeroportosTableBody.innerHTML = '';
+
+          // Adiciona os aeroportos à tabela
+          data.payload.forEach(aeroportos => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${aeroportos.idAeroporto}</td>
+              <td>${aeroportos.nomeAeroporto}</td>
+              <td>${aeroportos.idAeronave}</td>
+            `;
+            aeroportosTableBody.appendChild(row);
+          });
+        } else {
+          console.error('Erro ao carregar aeroportos:', data.message);
+        }
+      } catch (error) {
+        console.error('Erro inesperado:', error);
+      }
+    }
+
+    function fetchDeletar(body){
+        const requestOptions = {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+      };
+
+        return fetch('http://localhost:3000/Aeroportos', requestOptions)
+        .then(response => response.json())
+      }
+
+    function deletarAeroporto(){
+
+      const identificacao = 3;
+
+      if(!preencheuID(identificacao)){
+          showStatusMessage("Preencha o ID...", true, identificacao);
+          return;
+      }
+
+      const idAeronave = document.getElementById("idAeroportoDelete").value;
+
+      fetchDeletar({
+        codigo: idAeronave})
+        .then(resultado =>{
+
+          if(resultado.status === "SUCCESS"){
+            showStatusMessage("Aeroporto deletado...", false, identificacao);
+          }else{
+            showStatusMessage("Erro ao deletar aeroporto...: " + message, true, identificacao);
+            console.log(resultado.message)
+          }
+        })
+        .catch(()=>{
+          showStatusMessage("Erro técnico ao deletar.... Contate o suporte.", true, identificacao)
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        selectAeroporto();
+      });
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <div class="nav-left">
+                <ul>
+                  <li class="li-padrao"><h2><a href="../voos/voos.html">Voos</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../aeronaves/aeronaves.html">Aeronaves</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../cidades/cidades.html">Cidades</a></h2></li>
+                  <li class="li-padrao"><h2><a href="../trechos/trechos.html">Trechos</a></h2></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main>
+            <header>
+                <h1><a href="#"></a>Aeroporto</h1>
+            </header>
+
+            <div class="divTable">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nome Aeroporto</th>
+                      <th>ID Aeronave</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    
+                  </tbody>
+                </table>
+              </div>
+              <div class="container2">
+                <div class="include">
+                  <form>
+                      <label for="idAeroportoInclude">ID</label>
+                      <input id="idAeroportoInclude" type="number"/>
+            
+                      <label for="nomeAeroportoInclude">Nome Aeroporto</label>
+                      <input id="nomeAeroportoInclude" type="text"/>
+
+                      <label for="idAeronaveInclude">ID Aeronave</label>
+                      <input id="idAeronaveInclude" type="number"/>
+
+                      <button type="button" onclick="inserirAeroporto()" id="btnAdicionar">Adicionar</button>
+                      <p id="statusInclude" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="alter">
+                  <form>
+                      <label for="idAeroportoAlter">ID</label>
+                      <input id="idAeroportoAlter" type="number"/>
+            
+                      <label for="nomeAeroportoAlter">Nome Aeroporto</label>
+                      <input id="nomeAeroportoAlter" type="text"/>
+
+                      <label for="idAeronaveAlter">ID Aeronave</label>
+                      <input id="idAeronaveAlter" type="number"/>
+                      <button type="button" onclick="alterarAeroporto()" id="btnAlterar">Alterar</button>
+                      <p id="statusAlter" class="statusError"></p>
+                  </form>
+                </div>
+
+                <div class="delete">
+                  <form>
+                      <label for="idAeroportoDelete">ID</label>
+                      <input id="idAeroportoDelete" type="number"/>
+                      <button type="button" onclick="deletarAeroporto()" id="btnExcluir">Excluir</button>
+                      <p id="statusDelete" class="statusError"></p>
+                  </form>
+                </div>
+              </div>
+            <div class="main-content"></div>
+        </main>
+    </div>
+</body>
+</html>

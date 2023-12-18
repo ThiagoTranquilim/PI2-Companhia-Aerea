@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700&family=Quicksand:wght@300;400;700&family=Roboto:wght@100;400;700&display=swap');
+
+:root{
+    --color-blue : #334075;
+    --color-red : #F2294E;
+    --color-light-blue: #05C7F2;
+    --color-white: white;
+    --color-green: #14974D;
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
+}
+
+header{
+    height: 10vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--color-blue);
+    
+}
+
+.container{
+    height: 100vh;
+    transition: 300ms;
+    display: grid;
+    grid-template-columns: var(--left, 48px) auto;
+}
+
+nav{
+    background-color: var(--color-blue)
+}
+
+.nav-left{
+    height: 100%;
+    visibility: hidden;
+    color: var(--color-white);
+}
+
+.nav-left ul{
+    padding: 30px;
+    list-style: none;
+}
+
+.nav-left li{
+    margin-top: 10%;
+    width: 100%;
+}
+
+main{
+    background-color: var(--color-white);
+    border: 3rem solid rba(0 0 0 / 10%);
+}
+
+.divTable{
+    width: auto;
+    height: inherit;
+    overflow: auto;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+    margin-bottom: 100px;
+}
+
+table{
+    width: 100%;
+    border-spacing: 10px;
+}
+
+thead{
+    color: var(--color-white);
+    background-color: var(--color-blue);
+}
+
+tr{
+    border-bottom: 1px solid rgb(238, 235, 235);
+}
+
+thead th{
+    width: 100px;
+    text-align: center;
+}
+
+tbody tr td{
+    text-align: center;
+}
+
+.container:has(nav:hover){
+    --left: 30%;
+
+    .nav-left{
+        visibility: visible;
+    }
+    .nav-left a{
+        visibility: visible;
+        text-decoration: none;
+        color: var(--color-white);
+    }
+}
+
+li:hover{
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-align: center;
+    transition: 100ms;
+}
+
+.nav-left a{
+    cursor: pointer;
+}
+
+.container2{
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 50px;
+}
+
+.include form, .alter form, .delete form{
+    display: flex;
+    flex-direction: column;
+    border: 5px solid var(--color-blue);
+    border-radius: 30px;
+    padding: 30px 20px;
+    margin-left: 20px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+form input{
+    border: none;
+    border-bottom: 1px solid #515151;
+    background: transparent;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+input:focus {
+    outline: none;
+}
+
+form button{
+    border-radius: 20px;
+    padding: 0.5em;
+    font-weight: bold;
+    color: var(--color-white);
+    text-transform: uppercase;
+    border: none;
+}
+
+.include button{
+    background-color: var(--color-green);
+}
+
+.alter button{
+    background-color: var(--color-blue);
+}
+
+.delete button{
+    background-color: var(--color-red);
+}
+
+.statusError{
+    color:red;
+ }
+.statusSuccess{
+   color:blue;
+}
